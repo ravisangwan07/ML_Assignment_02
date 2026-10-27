@@ -13,6 +13,12 @@ def split_data(data):
     return train_test_split(X, y, test_size=TEST_SIZE, stratify=y,
                             random_state=RANDOM_STATE)
 
+def save_test_csv(X_test, y_test, path="test_data.csv"):
+    """Write features + target of the held-out part to a CSV (used later by the Streamlit app)."""
+    out = X_test.copy()
+    out[TARGET] = y_test.values
+    out.to_csv(path, index=False)
+
 def load_data():
     """Return the UCI digits data as one DataFrame (64 pixel columns + target)."""
     frame = load_digits(as_frame=True).frame
@@ -27,3 +33,5 @@ if __name__ == "__main__":
     assert n_rows >= 500 and n_cols - 1 >= 12, "dataset too small for the assignment"
     X_train, X_test, y_train, y_test = split_data(data)
     print(f"train={len(X_train)}, test={len(X_test)}")
+    save_test_csv(X_test, y_test)
+    print("saved test_data.csv")
