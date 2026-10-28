@@ -123,3 +123,34 @@ with tab_compare:
     st.bar_chart(board[metric_pick])
     leader = board[metric_pick].idxmax()
     st.info(f"Highest {metric_pick} on this data: {leader} ({board.loc[leader, metric_pick]:.4f})")
+
+# ----------------------------------------------------------------- tab 4: sample inspector
+with tab_sample:
+    st.subheader("Inspect one row")
+    row = int(st.number_input("Row number", min_value=0, max_value=len(frame) - 1,
+                              value=0, step=1))
+    pic, info = st.columns([1, 2])
+    side = int(round(len(FEATURES) ** 0.5))
+    with pic:
+        if side * side == len(FEATURES):          # square number of pixels -> draw the image
+            fig, ax = plt.subplots(figsize=(2.6, 2.6))
+            ax.imshow(X.iloc[row].to_numpy(dtype=float).reshape(side, side), cmap="gray_r")
+            ax.axis("off")
+            st.pyplot(fig)
+            plt.close(fig)
+        else:
+            st.dataframe(X.iloc[[row]].T)
+    with info:
+        st.write(f"True label: **{y.iloc[row]}**   |   Predicted: **{y_pred[row]}**")
+        if y.iloc[row] == y_pred[row]:
+            st.success("Correct prediction")
+        else:
+            st.warning("Misclassified")
+        st.bar_chart(pd.Series(y_proba[row], index=[str(c) for c in model.classes_]))
+
+with st.expander("About this app"):
+    st.markdown(
+        f"Each model is a scikit-learn `Pipeline` (median imputer, standard scaler, classifier) "
+        f"saved with joblib. Hyper-parameters were tuned with 5-fold cross-validation on the "
+        f"training split ({int((1 - meta['test_size']) * 100)}% of the data); this app only calls "
+        f"`predict` and `predict_proba` on the file you provide.")
