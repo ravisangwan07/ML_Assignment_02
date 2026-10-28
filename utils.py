@@ -1,9 +1,14 @@
 """Helper functions shared by the training script and the Streamlit app."""
 from sklearn.metrics import (accuracy_score, f1_score, matthews_corrcoef,
                              precision_score, recall_score, roc_auc_score)
+from pathlib import Path
 
 METRIC_NAMES = ["Accuracy", "AUC", "Precision", "Recall", "F1", "MCC"]
+MODEL_DIR = Path(__file__).resolve().parent / "model"
 
+def model_path(name):
+    """Path of the saved pipeline for a display name such as 'Logistic Regression'."""
+    return MODEL_DIR / (name.lower().replace(" ", "_") + ".joblib")
 
 def score_predictions(y_true, y_pred, y_proba, classes):
     """Compute the six required metrics and return them in a dict.
