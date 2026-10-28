@@ -73,3 +73,23 @@ if unseen:
     st.error(f"The target column has labels the models were never trained on: {unseen}")
     st.stop()
 st.success(f"Loaded {origin}: {len(frame)} rows")
+
+model = models[chosen]
+scores, y_pred, y_proba = utils.predict_and_score(model, X, y)
+
+tab_scores, tab_matrix, tab_compare, tab_sample = st.tabs(
+    ["📊 Scores", "🧩 Confusion matrix & report", "🏁 Model comparison", "🔍 Sample inspector"])
+
+# ----------------------------------------------------------------- tab 1: scores
+with tab_scores:
+    st.subheader(f"{chosen} on {len(frame)} rows")
+    for col, key in zip(st.columns(len(utils.METRIC_NAMES)), utils.METRIC_NAMES):
+        value = scores[key]
+        col.metric(key, "n/a" if np.isnan(value) else f"{value:.4f}")
+    st.caption("Precision, Recall and F1 are macro-averaged over the classes; "
+               "AUC is one-vs-rest, macro-averaged.")
+    predictions = pd.DataFrame({"true_label": y, "predicted_label": y_pred,
+                                "confidence": y_proba.max(axis=1).round(4)})
+    st.download_button("Download predictions (CSV)",
+                       predictions.to_csv(index=False).encode("utf-8"),
+                       file_name="predictions.csv", mime="text/csv")
