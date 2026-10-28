@@ -93,3 +93,33 @@ with tab_scores:
     st.download_button("Download predictions (CSV)",
                        predictions.to_csv(index=False).encode("utf-8"),
                        file_name="predictions.csv", mime="text/csv")
+
+# ----------------------------------------------------------------- tab 2: matrix + report
+with tab_matrix:
+    cm, report = utils.confusion_and_report(y, y_pred, CLASSES)
+    left, right = st.columns(2)
+    with left:
+        st.subheader("Confusion matrix")
+        fig, ax = plt.subplots(figsize=(5.5, 4.6))
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False,
+                    xticklabels=CLASSES, yticklabels=CLASSES, ax=ax)
+        ax.set_xlabel("Predicted digit")
+        ax.set_ylabel("True digit")
+        ax.set_title(chosen)
+        st.pyplot(fig)
+        plt.close(fig)
+    with right:
+        st.subheader("Classification report")
+        st.dataframe(report.round(4))
+
+# ----------------------------------------------------------------- tab 3: comparison
+with tab_compare:
+    st.subheader("All five models on the same data")
+    board = pd.DataFrame({name: utils.predict_and_score(m, X, y)[0]
+                          for name, m in models.items()}).T
+    board.index.name = "ML Model Name"
+    st.dataframe(board.round(4))
+    metric_pick = st.selectbox("Metric to chart", utils.METRIC_NAMES)
+    st.bar_chart(board[metric_pick])
+    leader = board[metric_pick].idxmax()
+    st.info(f"Highest {metric_pick} on this data: {leader} ({board.loc[leader, metric_pick]:.4f})")
